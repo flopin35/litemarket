@@ -64,7 +64,9 @@ function ShopView({ shop }: { shop: Shop }) {
   // Modals and drawers render outside this page (portals), so the shop colour goes on <html>.
   useEffect(() => {
     document.documentElement.style.setProperty("--shop", accent);
-    return () => document.documentElement.style.removeProperty("--shop");
+    return () => {
+      document.documentElement.style.removeProperty("--shop");
+    };
   }, [accent]);
 
   const visible = useMemo(
