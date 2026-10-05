@@ -1,0 +1,818 @@
+note Lite Marketplace: create your online store in minutes and sell on WhatsApp.
+note First made as a website by Wilson Makafui (HTML + Firebase), rebuilt in Plain.
+note
+note What it keeps next to this program:
+note   marketplace.json   sellers, products, orders and payments
+note   settings.json      the Flutterwave secret key (keep this file private)
+note   photos             product photos
+note   web shops          every seller's shop as a web page (index.html)
+note   shop.json          the shop that was published last (Shop.ui shows it)
+
+use ui
+set title of window to "Lite Marketplace"
+set width of window to 1040
+set height of window to 820
+
+note ── Plans ──
+set plans to [a record with name "Weekly", price 30, days 7, a record with name "Monthly", price 100, days 30, a record with name "3 Months", price 230, days 91, a record with name "5 Months", price 400, days 152]
+set freelimit to 5
+
+note ── Saved data ──
+if file "marketplace.json" exists then
+    set db to data from file "marketplace.json"
+otherwise
+    set db to a record with users [], products [], orders [], payments []
+end
+set settings to a record with flutterwave_key "", redirect "https://flutterwave.com", api "https://api.flutterwave.com/v3"
+if file "settings.json" exists then
+    set settings to data from file "settings.json"
+    if not ("flutterwave_key" is in keys of settings) then
+        set flutterwave_key of settings to ""
+    end
+    if not ("redirect" is in keys of settings) then
+        set redirect of settings to "https://flutterwave.com"
+    end
+    if not ("api" is in keys of settings) then
+        set api of settings to "https://api.flutterwave.com/v3"
+    end
+end
+
+set me to nothing
+set editing to nothing
+set photo to ""
+set pending to nothing
+set pickedorder to nothing
+
+note ── The window ──
+add a title "Lite Marketplace"
+add a label "Create your online store in minutes. Sell on WhatsApp. No coding needed." in gray
+
+add a tab "Welcome" called welcometab
+    add a card
+        add a heading "Create Your Online Store in Minutes"
+        add a label "Add your products, publish your shop as a web page, and get orders from your customers straight on WhatsApp."
+        add a row
+            add a button "Get started free" called getstarted
+            add a button "View pricing" called seepricing in gray
+            add a button "I have an account" called gologin in gray
+        end
+    end
+    add a heading "Why choose Lite Marketplace?"
+    add a row
+        add a card "Fast setup"
+            add a label "Create your online store in minutes."
+        end
+        add a card "WhatsApp orders"
+            add a label "Receive orders from your customers directly on WhatsApp."
+        end
+        add a card "Start earning"
+            add a label "Turn your business into online income."
+        end
+    end
+    add a card "About the developer"
+        add a label "Name: Wilson Makafui"
+        add a label "Age: 14"
+        add a label "Gmail: activegpt@gmail.com"
+    end
+    add a label "© 2026 Lite Marketplace. All rights reserved." in gray
+end
+
+add a tab "Sign up" called signuptab
+    add a heading "Create your account"
+    add a text box called newemail with hint "Email"
+    add a password box called newpass with hint "Password (6 or more letters)"
+    add a text box called newphone with hint "WhatsApp number, like 024 123 4567"
+    add a text box called newstore with hint "Store name, like Ama's Kitchen"
+    add a button "Create account" called createaccount
+    add a label "Already have an account? Open the Log in tab." in gray
+end
+
+add a tab "Log in" called logintab
+    add a heading "Welcome back"
+    add a text box called loginemail with hint "Email"
+    add a password box called loginpass with hint "Password"
+    add a button "Log in" called dologin
+end
+
+add a tab "Dashboard" called dashtab
+    add a heading called hello
+    add a row
+        add a card "Plan"
+            add a label called plantext
+        end
+        add a card "Products"
+            add a label called productcount
+        end
+        add a card "Sales"
+            add a label called salestext
+        end
+    end
+    add a bar chart called weekchart in teal
+    add a label "Sales in the last 7 days, in GHS (paid and delivered orders)" in gray
+    add a row
+        add a button "Add a product" called toproducts
+        add a button "Publish my shop" called topublish in green
+        add a button "Upgrade" called toplans in purple
+        add a button "Log out" called logout in gray
+    end
+end
+
+add a tab "My products" called productstab
+    add a card "Product" called productform
+        add a text box called pname with hint "Product name"
+        add a text box called pprice with hint "Price in GHS, like 25 or 12.50"
+        add a dropdown called pcategory with "Food", "Drinks", "Clothes", "Shoes", "Bags", "Beauty", "Phones & gadgets", "Home", "Services", "Other"
+        add a text area called pdesc with hint "Describe it: size, colour, what is included"
+        add a switch "In stock" called pstock
+        add a row
+            add a button "Choose photo" called choosephoto in gray
+            add a label "No photo yet" called photonote in gray
+        end
+        add an image called preview
+        add a row
+            add a button "Save product" called saveproduct in green
+            add a button "New product" called newproduct in gray
+            add a button "Delete" called deleteproduct in red
+        end
+    end
+    add a label called limitnote in gray
+    add a table called ptable with columns "Name", "Price", "Category", "In stock"
+    add a label "Click a product to change it." in gray
+end
+
+add a tab "Orders" called orderstab
+    add a card "Add an order you got on WhatsApp" called orderform
+        add a text box called ocustomer with hint "Customer name"
+        add a text box called ophone with hint "Customer phone (optional)"
+        add a text area called oitems with hint "What they ordered, like 2 x Meat pie"
+        add a text box called ototal with hint "Total in GHS"
+        add a dropdown called ostatus with "New", "Paid", "Delivered", "Cancelled"
+        add a row
+            add a button "Save order" called saveorder in green
+            add a button "New order" called neworder in gray
+        end
+    end
+    add a label called ordersummary
+    add a table called otable with columns "Date", "Customer", "Items", "Amount", "Status"
+    add a label "Click an order to change it." in gray
+end
+
+add a tab "Publish" called publishtab
+    add a heading "Your shop on the web"
+    add a label "Publishing makes your shop into one web page (index.html) that works on any phone. Customers fill a cart, and the order comes to your WhatsApp."
+    add a row
+        add a button "Publish my shop" called publish in green
+        add a button "Open my shop" called openshop in gray
+        add a button "Share on WhatsApp" called share in gray
+    end
+    add a label called publishnote
+    add a text box called shoplink with hint "Your shop's web address after you upload it (optional)"
+    add a label "To get a link, upload the index.html file to a free host such as Netlify Drop (app.netlify.com/drop) or GitHub Pages, then paste the address above." in gray
+    add a heading "How customers see your products"
+    add a gallery called shoppreview with button "Add to cart" and currency "GHS"
+end
+
+add a tab "Plans" called planstab
+    add a heading "Choose your plan"
+    add a label "Free: up to 5 products. Any paid plan: as many products as you like." in gray
+    add a label called currentplan
+    add a row
+        add a card "Weekly"
+            add a label "GHS 30 for 7 days"
+            add a button "Subscribe" called payweekly
+        end
+        add a card "Monthly"
+            add a label "GHS 100 for 30 days"
+            add a button "Subscribe" called paymonthly
+        end
+        add a card "3 Months"
+            add a label "GHS 230 for 91 days"
+            add a button "Subscribe" called paythree
+        end
+        add a card "5 Months"
+            add a label "GHS 400 for 152 days"
+            add a button "Subscribe" called payfive
+        end
+    end
+    add a card "Payment" called paycard
+        add a label "Pay with Mobile Money or a card on Flutterwave's secure page. It opens in your browser." called paystatus
+        add a button "I have paid: check my payment" called checkpay
+    end
+end
+
+add a tab "Admin" called admintab
+    add a heading "Admin dashboard"
+    add a row
+        add a card "Total users"
+            add a label called usercount
+        end
+        add a card "Total products"
+            add a label called allproducts
+        end
+        add a card "Paying sellers"
+            add a label called payingcount
+        end
+        add a card "Money in"
+            add a label called moneyin
+        end
+    end
+    add a table called utable with columns "Email", "Store", "Phone", "Plan", "Expires"
+    add a row
+        add a dropdown called giveplan with "Weekly", "Monthly", "3 Months", "5 Months", "Free"
+        add a button "Give this plan to the seller I clicked" called dogive in purple
+    end
+    add a heading "Payments"
+    add a table called paytable with columns "Date", "Email", "Plan", "Amount", "Reference"
+    add a card "Settings"
+        add a label "Flutterwave secret key, from your Flutterwave dashboard (Settings > API keys). Try the TEST key first. It is saved in settings.json on this computer only, so keep that file private."
+        add a password box called fwkey with hint "FLWSECK_TEST-..."
+        add a text box called fwredirect with hint "After paying, send the customer to this web address"
+        add a button "Save settings" called savesettings
+    end
+end
+
+note ── Helpers ──
+to save everything
+    save db to file "marketplace.json"
+end
+
+to clean phone with raw
+    set digits to join (each ch in characters of text of raw where ch is in "0123456789") with ""
+    if digits starts with "0" and length of digits is 10 then
+        set digits to "233" + letters 2 to 10 of digits
+    end
+    give back digits
+end
+
+to make slug with words
+    set kept to join (each ch in characters of lowercase of trimmed of words where ch is in "abcdefghijklmnopqrstuvwxyz0123456789 ") with ""
+    set kept to replace " " with "-" in trimmed of kept
+    if kept is "" then
+        set kept to "my-shop"
+    end
+    give back kept
+end
+
+to find user with mail
+    for each u in users of db
+        if email of u is mail then
+            give back u
+        end
+    end
+    give back nothing
+end
+
+to find plan with planname
+    for each p in plans
+        if name of p is planname then
+            give back p
+        end
+    end
+    give back nothing
+end
+
+to is premium
+    if me is nothing then
+        give back no
+    end
+    if plan of me is "Free" or expiry of me is "" then
+        give back no
+    end
+    give back days until expiry of me is at least 0
+end
+
+to my products
+    give back each p in products of db where owner of p is email of me
+end
+
+to my orders
+    give back each o in orders of db where owner of o is email of me
+end
+
+note Ends a plan that has run out (like the old dashboard did)
+to check the plan
+    if plan of me is not "Free" and expiry of me is not "" and days until expiry of me is less than 0 then
+        set plan of me to "Free"
+        set expiry of me to ""
+        save everything
+        show a message "Your plan has ended. You are on the Free plan now." in orange
+    end
+end
+
+note ── Showing things ──
+to show the dashboard
+    set text of hello to "Hi, " + store of me + "!"
+    if is premium then
+        set text of plantext to plan of me + ", until " + (expiry of me as a date) + " (" + text of (days until expiry of me) + " days left)"
+    otherwise
+        set text of plantext to "Free (up to " + text of freelimit + " products)"
+    end
+    set text of productcount to text of (length of my products) + " products"
+    set sumpaid to 0
+    set paidcount to 0
+    for each o in my orders
+        if status of o is "Paid" or status of o is "Delivered" then
+            increase sumpaid by amount of o
+            increase paidcount by 1
+        end
+    end
+    set text of salestext to "GHS " + (sumpaid as money) + " from " + text of paidcount + " orders"
+    set week to an empty list
+    set names to an empty list
+    for each k in numbers from 6 to 0 by -1
+        set thisday to the date k days ago
+        set daytotal to 0
+        for each o in my orders
+            if date of o is thisday and (status of o is "Paid" or status of o is "Delivered") then
+                increase daytotal by amount of o
+            end
+        end
+        add daytotal to week
+        add first 3 letters of (thisday as a date) to names
+    end
+    set values of weekchart to week
+    set labels of weekchart to names
+end
+
+to show the products
+    set mine to my products
+    set rows of ptable to mine
+    if is premium then
+        set text of limitnote to text of (length of mine) + " products. Your plan lets you add as many as you like."
+    otherwise
+        set text of limitnote to text of (length of mine) + " of " + text of freelimit + " products on the Free plan. Upgrade for more."
+    end
+    set items of shoppreview to mine
+end
+
+to show the orders
+    set mine to reversed of my orders
+    set rows of otable to mine
+    set newcount to 0
+    for each o in mine
+        if status of o is "New" then
+            increase newcount by 1
+        end
+    end
+    set text of ordersummary to text of (length of mine) + " orders, " + text of newcount + " still new."
+end
+
+to show the plans
+    if is premium then
+        set text of currentplan to "Your plan: " + plan of me + ", until " + (expiry of me as a date) + "."
+    otherwise
+        set text of currentplan to "Your plan: Free."
+    end
+end
+
+to show the admin
+    set text of usercount to text of (length of users of db)
+    set text of allproducts to text of (length of products of db)
+    set paying to 0
+    set lines to an empty list
+    for each u in users of db
+        set shown to "-"
+        if plan of u is not "Free" and expiry of u is not "" then
+            set shown to expiry of u as a date
+            if days until expiry of u is at least 0 then
+                increase paying by 1
+            end
+        end
+        add [email of u, store of u, phone of u, plan of u, shown] to lines
+    end
+    set rows of utable to lines
+    set text of payingcount to text of paying
+    set money to 0
+    for each pay in payments of db
+        increase money by amount of pay
+    end
+    set text of moneyin to "GHS " + (money as money)
+    set rows of paytable to reversed of payments of db
+    set text of fwkey to flutterwave_key of settings
+    set text of fwredirect to redirect of settings
+end
+
+to show everything
+    show the dashboard
+    show the products
+    show the orders
+    show the plans
+    if admin of me then
+        show the admin
+    end
+end
+
+to clear the product form
+    set editing to nothing
+    set photo to ""
+    set text of pname to ""
+    set text of pprice to ""
+    set text of pdesc to ""
+    set value of pcategory to "Food"
+    set checked of pstock to yes
+    set text of photonote to "No photo yet"
+    hide preview
+    set text of productform to "New product"
+    set value of ptable to nothing
+end
+
+to clear the order form
+    set pickedorder to nothing
+    set text of ocustomer to ""
+    set text of ophone to ""
+    set text of oitems to ""
+    set text of ototal to ""
+    set value of ostatus to "New"
+    set text of orderform to "Add an order you got on WhatsApp"
+    set value of otable to nothing
+end
+
+to log in with user
+    set me to user
+    check the plan
+    hide welcometab
+    hide signuptab
+    hide logintab
+    show productstab
+    show orderstab
+    show publishtab
+    if admin of me then
+        show admintab
+    otherwise
+        hide admintab
+    end
+    show dashtab
+    set text of shoplink to link of me
+    clear the product form
+    clear the order form
+    show everything
+end
+
+to log out
+    set me to nothing
+    set pending to nothing
+    hide dashtab
+    hide productstab
+    hide orderstab
+    hide publishtab
+    hide admintab
+    show signuptab
+    show logintab
+    show welcometab
+    set text of loginpass to ""
+    set text of currentplan to "Log in to subscribe."
+end
+
+note ── Paying with Flutterwave ──
+to start paying with planname
+    set p to find plan with planname
+    set key to trimmed of flutterwave_key of settings
+    if me is nothing then
+        show logintab
+        show a message "Log in first, then choose a plan." in orange
+    otherwise if key is "" then
+        set text of paystatus to "Payments aren't switched on yet. The admin needs to add the Flutterwave key in Admin > Settings."
+        show a message "Payments aren't switched on yet." in red
+    otherwise
+        set ref to "LM-" + a unique id
+        set body to a record with tx_ref ref, amount price of p, currency "GHS", redirect_url redirect of settings, customer (a record with email email of me, phonenumber phone of me, name store of me), customizations (a record with title "Lite Marketplace", description name of p + " plan for " + store of me), payment_options "mobilemoneyghana, card"
+        set text of paystatus to "Opening Flutterwave..."
+        try
+            post body to api of settings + "/payments" with headers a record with authorization "Bearer " + key and save it in reply
+            if status of reply is "success" then
+                set pending to a record with ref ref, plan name of p, amount price of p
+                open link of data of reply
+                set text of paystatus to "Pay GHS " + (price of p as money) + " for the " + name of p + " plan on the Flutterwave page that opened in your browser. When you have paid, click: I have paid: check my payment."
+            otherwise
+                set text of paystatus to "Flutterwave said: " + message of reply
+            end
+        if it fails
+            set text of paystatus to "The payment couldn't start: " + problem
+        end
+    end
+end
+
+note Gives a seller a plan: from today, or added on to the days they still have
+to give plan with who, planname, amount, ref
+    set p to find plan with planname
+    if planname is "Free" then
+        set plan of who to "Free"
+        set expiry of who to ""
+    otherwise
+        set left to 0
+        if plan of who is not "Free" and expiry of who is not "" and days until expiry of who is more than 0 then
+            set left to days until expiry of who
+        end
+        set expiry of who to the date in (left + days of p) days
+        set plan of who to planname
+        add a record with date (the date today), email email of who, plan planname, amount amount, reference ref to payments of db
+    end
+    save everything
+end
+
+note ── What the buttons do ──
+when getstarted is clicked
+    show signuptab
+end
+when seepricing is clicked
+    show planstab
+end
+when gologin is clicked
+    show logintab
+end
+
+when createaccount is clicked
+    set mail to lowercase of trimmed of text of newemail
+    set pass to text of newpass
+    set phone to clean phone with text of newphone
+    set name to trimmed of text of newstore
+    if not (mail contains "@" and mail contains ".") then
+        show a message "Please type a real email address." in red
+    otherwise if length of pass is less than 6 then
+        show a message "The password needs 6 or more letters." in red
+    otherwise if length of phone is less than 10 then
+        show a message "Please type your WhatsApp number, like 024 123 4567." in red
+    otherwise if name is "" then
+        show a message "Please give your store a name." in red
+    otherwise if find user with mail is not nothing then
+        show a message "There is already an account with that email. Log in instead." in orange
+    otherwise
+        set salt to a unique id
+        set first to length of users of db is 0
+        set user to a record with email mail, salt salt, password (hash of (salt + pass)), phone phone, store name, plan "Free", expiry "", admin first, joined (the date today), link ""
+        add user to users of db
+        save everything
+        set text of newpass to ""
+        if first then
+            show a message "Welcome! You are the first account, so you are the admin too." in green
+        otherwise
+            show a message "Welcome to Lite Marketplace, " + name + "!" in green
+        end
+        log in with user
+    end
+end
+
+when dologin is clicked
+    set user to find user with lowercase of trimmed of text of loginemail
+    if user is nothing then
+        show a message "No account with that email. Sign up first." in red
+    otherwise if hash of (salt of user + text of loginpass) is not password of user then
+        show a message "That password isn't right." in red
+    otherwise
+        set text of loginpass to ""
+        log in with user
+        show a message "Welcome back, " + store of me + "!" in green
+    end
+end
+
+when logout is clicked
+    log out
+end
+when toproducts is clicked
+    show productstab
+end
+when topublish is clicked
+    show publishtab
+end
+when toplans is clicked
+    show planstab
+end
+
+note Products
+when choosephoto is clicked
+    choose a picture and save it in chosen
+    if chosen is not nothing then
+        set photo to chosen
+        set text of photonote to "Photo: " + chosen
+        set source of preview to chosen
+        set height of preview to 140
+        show preview
+    end
+end
+
+when newproduct is clicked
+    clear the product form
+end
+
+when ptable is clicked
+    set picked to value of ptable
+    if picked is not nothing then
+        set editing to picked
+        set photo to photo of picked
+        set text of pname to name of picked
+        set text of pprice to text of (price of picked)
+        set text of pdesc to description of picked
+        set value of pcategory to category of picked
+        set checked of pstock to in_stock of picked is "Yes"
+        set text of productform to "Change product: " + name of picked
+        if photo is "" then
+            set text of photonote to "No photo yet"
+            hide preview
+        otherwise
+            set text of photonote to "Photo: " + photo
+            set source of preview to photo
+            set height of preview to 140
+            show preview
+        end
+    end
+end
+
+when saveproduct is clicked
+    set name to trimmed of text of pname
+    set price to trimmed of text of pprice
+    if name is "" then
+        show a message "Give the product a name." in red
+    otherwise if not (price is a number) then
+        show a message "The price needs to be a number, like 25 or 12.50." in red
+    otherwise if editing is nothing and not is premium and length of my products is at least freelimit then
+        show a message "The Free plan has room for " + text of freelimit + " products. Upgrade in Plans for more." in orange
+        show planstab
+    otherwise
+        if editing is nothing then
+            set editing to a record with id (a unique id), owner email of me, name "", price 0, category "", description "", photo "", in_stock "Yes"
+            add editing to products of db
+        end
+        set name of editing to name
+        set price of editing to number of price
+        set category of editing to value of pcategory
+        set description of editing to trimmed of text of pdesc
+        set in_stock of editing to "Yes" if checked of pstock otherwise "No"
+        note A newly chosen photo is copied into the photos folder, so the shop can show it
+        if photo is not "" and not (photo starts with "photos/") then
+            copy file photo to "photos/" + id of editing and save it in saved
+            set photo to saved
+        end
+        set photo of editing to photo
+        save everything
+        show a message "Saved " + name in green
+        clear the product form
+        show everything
+    end
+end
+
+when deleteproduct is clicked
+    if editing is nothing then
+        show a message "Click a product in the list first." in orange
+    otherwise
+        remove editing from products of db
+        save everything
+        show a message "Deleted " + name of editing in gray
+        clear the product form
+        show everything
+    end
+end
+
+note Orders
+when neworder is clicked
+    clear the order form
+end
+
+when otable is clicked
+    set picked to value of otable
+    if picked is not nothing then
+        set pickedorder to picked
+        set text of ocustomer to customer of picked
+        set text of ophone to phone of picked
+        set text of oitems to items of picked
+        set text of ototal to text of (amount of picked)
+        set value of ostatus to status of picked
+        set text of orderform to "Change order from " + customer of picked
+    end
+end
+
+when saveorder is clicked
+    set who to trimmed of text of ocustomer
+    set amount to trimmed of text of ototal
+    if who is "" then
+        show a message "Type the customer's name." in red
+    otherwise if not (amount is a number) then
+        show a message "The total needs to be a number, like 45." in red
+    otherwise
+        if pickedorder is nothing then
+            set pickedorder to a record with id (a unique id), owner email of me, date (the date today), customer "", phone "", items "", amount 0, status "New"
+            add pickedorder to orders of db
+        end
+        set customer of pickedorder to who
+        set phone of pickedorder to trimmed of text of ophone
+        set items of pickedorder to trimmed of text of oitems
+        set amount of pickedorder to number of amount
+        set status of pickedorder to value of ostatus
+        save everything
+        show a message "Order saved" in green
+        clear the order form
+        show everything
+    end
+end
+
+note Publishing the shop as a web page
+when publish is clicked
+    set slug to make slug with store of me
+    set goods to an empty list
+    for each p in my products
+        add a record with name name of p, price price of p, description description of p, category category of p, photo photo of p, in_stock in_stock of p to goods
+    end
+    set shop to a record with store store of me, phone phone of me, currency "GHS", about "Order on WhatsApp. We reply fast!", products goods
+    save shop to file "shop.json"
+    set pagefile to "web shops/" + slug + "/index.html"
+    export "Shop.ui" as a web page pagefile with "shop.json"
+    set text of publishnote to "Published! Your shop is in the folder: web shops\\" + slug + " (the file index.html). Open it to try it, then upload it to share."
+    show a message "Your shop is published" in green
+end
+
+when openshop is clicked
+    set pagefile to "web shops/" + (make slug with store of me) + "/index.html"
+    if file pagefile exists then
+        open file pagefile
+    otherwise
+        show a message "Publish your shop first." in orange
+    end
+end
+
+when share is clicked
+    set address to trimmed of text of shoplink
+    if address is not "" then
+        set link of me to address
+        save everything
+    end
+    if address is "" then
+        show a message "Upload your shop first, then paste its web address in the box." in orange
+    otherwise
+        open "https://wa.me/?text=" + url encoded ("Shop with me online: " + store of me + " " + address)
+    end
+end
+
+note Plans
+when payweekly is clicked
+    start paying with "Weekly"
+end
+when paymonthly is clicked
+    start paying with "Monthly"
+end
+when paythree is clicked
+    start paying with "3 Months"
+end
+when payfive is clicked
+    start paying with "5 Months"
+end
+
+when checkpay is clicked
+    if me is nothing then
+        show a message "Log in first." in orange
+    otherwise if pending is nothing then
+        show a message "Choose a plan and pay first." in orange
+    otherwise
+        set key to trimmed of flutterwave_key of settings
+        try
+            get api of settings + "/transactions/verify_by_reference?tx_ref=" + url encoded ref of pending with headers a record with authorization "Bearer " + key and save it in check
+            set paid to data of check
+            if status of paid is "successful" and amount of paid is at least amount of pending and currency of paid is "GHS" then
+                give plan with me, plan of pending, amount of paid, text of (id of paid)
+                set text of paystatus to "You're all set! Plan: " + plan of me + ". Expires: " + (expiry of me as a date) + ". Transaction ID: " + text of (id of paid)
+                show a message "Payment received. Thank you!" in green
+                set pending to nothing
+                show everything
+            otherwise
+                set text of paystatus to "The payment isn't finished yet (Flutterwave says: " + status of paid + "). Finish paying, then check again."
+            end
+        if it fails
+            if problem contains "No transaction" then
+                set text of paystatus to "We can't see a payment yet. Finish paying on the Flutterwave page, then check again."
+            otherwise
+                set text of paystatus to "Couldn't check the payment: " + problem
+            end
+        end
+    end
+end
+
+note Admin
+when dogive is clicked
+    set row to value of utable
+    if row is nothing then
+        show a message "Click a seller in the list first." in orange
+    otherwise
+        set who to find user with email of row
+        set p to find plan with value of giveplan
+        set amount to 0
+        if p is not nothing then
+            set amount to price of p
+        end
+        give plan with who, value of giveplan, amount, "given by admin"
+        show a message store of who + " now has the " + value of giveplan + " plan" in green
+        show everything
+    end
+end
+
+when savesettings is clicked
+    set flutterwave_key of settings to trimmed of text of fwkey
+    set address to trimmed of text of fwredirect
+    if address is "" then
+        set address to "https://flutterwave.com"
+    end
+    set redirect of settings to address
+    save settings to file "settings.json"
+    show a message "Settings saved" in green
+end
+
+note ── Start ──
+log out
+show welcometab

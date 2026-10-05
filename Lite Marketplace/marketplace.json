@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "email": "daakukwaku7@gmail.com",
+      "salt": "wx5beauqsy",
+      "password": "379e6c2c104cad5b17ce9efe7d212c12cf266e05a8ae926cbeabd5f375d591bc",
+      "phone": "233240104225",
+      "store": "Nelle's Foundation",
+      "plan": "Free",
+      "expiry": "",
+      "admin": true,
+      "joined": "2026-10-05",
+      "link": ""
+    }
+  ],
+  "products": [],
+  "orders": [],
+  "payments": []
+}

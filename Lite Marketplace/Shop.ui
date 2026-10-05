@@ -1,0 +1,172 @@
+note Lite Marketplace: the shop your customers see.
+note Lite Marketplace fills in shop.json when you click Publish, and makes this
+note program into a web page that works on any phone: customers fill a cart and
+note send the order to you on WhatsApp.
+
+use ui
+
+note ── The shop and the cart ──
+if file "shop.json" exists then
+    set shop to data from file "shop.json"
+otherwise
+    set shop to a record with store "Your shop", phone "", currency "GHS", about "Open Lite Marketplace and click Publish to fill this shop.", products []
+end
+set money to currency of shop
+set cart to an empty list
+if file "cart.json" exists then
+    set cart to data from file "cart.json"
+end
+
+set title of window to store of shop
+set width of window to 900
+set height of window to 780
+
+add a title store of shop
+add a label about of shop called abouttext
+add a label "Pick what you like, then order on WhatsApp. The seller answers you there." in gray
+
+add a row
+    add a text box called search with hint "Search products"
+    add a dropdown called category
+end
+set categories to ["All"]
+for each c in unique of (category of p for each p in products of shop)
+    if c is not nothing and c is not "" then
+        add c to categories
+    end
+end
+set items of category to categories
+
+add a gallery called goods with button "Add to cart" and currency money
+set hint of goods to "No products match. Try another search."
+
+add a card "Your cart" called cartcard
+    add a table called cartview with columns "Item", "Qty", "Price"
+    add a label called totaltext
+    add a row
+        add a button "Remove one" called lessone in gray
+        add a button "Clear cart" called wipe in gray
+    end
+    add a text box called who with hint "Your name"
+    add a text box called place with hint "Where should we deliver? (town, area, landmark)"
+    add a text area called extra with hint "Anything else? (size, colour, when you want it)"
+    add a button "Order on WhatsApp" called order in green
+end
+add a label "Shop made with Lite Marketplace" in gray
+
+note ── Showing things ──
+to show the products
+    set wanted to lowercase of trimmed of text of search
+    set picked to value of category
+    set found to an empty list
+    for each p in products of shop
+        set fits to yes
+        if picked is not "All" and category of p is not picked then
+            set fits to no
+        end
+        if wanted is not "" and not (lowercase of name of p contains wanted or lowercase of description of p contains wanted) then
+            set fits to no
+        end
+        if fits then
+            add p to found
+        end
+    end
+    set items of goods to found
+end
+
+to cart total
+    set sum to 0
+    for each c in cart
+        increase sum by price of c * qty of c
+    end
+    give back sum
+end
+
+to show the cart
+    set lines to an empty list
+    for each c in cart
+        add [name of c, qty of c, money + " " + (price of c * qty of c as money)] to lines
+    end
+    set rows of cartview to lines
+    if length of cart is 0 then
+        set text of totaltext to "Your cart is empty."
+    otherwise
+        set text of totaltext to "Total: " + money + " " + (cart total as money)
+    end
+    set text of cartcard to "Your cart (" + text of (length of cart) + ")"
+    save cart to file "cart.json"
+end
+
+show the products
+show the cart
+
+note ── What customers do ──
+when search changes
+    show the products
+end
+when category changes
+    show the products
+end
+
+when goods is clicked
+    set p to value of goods
+    set inside to nothing
+    for each c in cart
+        if name of c is name of p then
+            set inside to c
+        end
+    end
+    if inside is nothing then
+        add a record with name name of p, price price of p, qty 1 to cart
+    otherwise
+        increase qty of inside by 1
+    end
+    show the cart
+    show a message "Added " + name of p + " to your cart" in green
+end
+
+when lessone is clicked
+    set row to value of cartview
+    if row is nothing then
+        show a message "Click a line in your cart first." in orange
+    otherwise
+        for each c in cart
+            if name of c is item of row then
+                decrease qty of c by 1
+                if qty of c is less than 1 then
+                    remove c from cart
+                end
+                stop
+            end
+        end
+        show the cart
+    end
+end
+
+when wipe is clicked
+    set cart to an empty list
+    show the cart
+end
+
+when order is clicked
+    if length of cart is 0 then
+        show a message "Your cart is empty. Add something first." in orange
+    otherwise if phone of shop is "" then
+        show a message "This shop has no WhatsApp number yet." in red
+    otherwise if trimmed of text of who is "" or trimmed of text of place is "" then
+        show a message "Please type your name and where we should deliver." in orange
+    otherwise
+        set message to "Hello " + store of shop + "! I would like to order:\n"
+        for each c in cart
+            set message to message + "- " + text of (qty of c) + " x " + name of c + " (" + money + " " + (price of c * qty of c as money) + ")\n"
+        end
+        set message to message + "Total: " + money + " " + (cart total as money) + "\n"
+        set message to message + "Name: " + trimmed of text of who + "\n"
+        set message to message + "Deliver to: " + trimmed of text of place
+        if trimmed of text of extra is not "" then
+            set message to message + "\nNote: " + trimmed of text of extra
+        end
+        open "https://wa.me/" + phone of shop + "?text=" + url encoded message
+        show a message "WhatsApp is opening. Send the message to finish your order." in green
+    end
+end

@@ -1,0 +1,79 @@
+LITE MARKETPLACE (made in Plain)
+================================
+Create your online store in minutes and sell on WhatsApp.
+First made by Wilson Makafui as a website (HTML + Firebase), now a Plain app.
+
+
+WHAT'S IN THIS FOLDER
+---------------------
+Lite Marketplace.ui   The app for sellers. Open it in Plain and press F5.
+Shop.ui               The shop customers see. Publishing turns it into a
+                      web page (you don't need to open it yourself).
+
+Lite Marketplace makes these the first time you use it:
+marketplace.json      sellers, products, orders and payments
+settings.json         the Flutterwave secret key. Keep this file private.
+photos\               product photos
+shop.json             the shop that was published last
+web shops\            every seller's shop as a web page (index.html)
+
+
+HOW IT WORKS
+------------
+1. Sign up: email, password, WhatsApp number and a store name.
+   The first account is the admin (it gets the Admin tab).
+   Passwords are never saved: only a hash of them (hash of salt + password).
+2. My products: name, price, category, description, "In stock", and a
+   photo ("Choose photo"). Click a product in the list to change or delete it.
+   The Free plan has room for 5 products. A paid plan: as many as you like.
+3. Orders: write down the orders you get on WhatsApp, and mark them Paid,
+   Delivered or Cancelled. The Dashboard shows your sales and a chart of
+   the last 7 days.
+4. Publish: makes your shop into one web page (web shops\<your shop>\index.html).
+   It works on any phone: customers search, fill a cart, type their name and
+   where to deliver, and press "Order on WhatsApp". The order arrives on your
+   WhatsApp as a message.
+   To share it, upload index.html to a free host:
+     - Netlify Drop: go to app.netlify.com/drop and drag the folder there
+     - or GitHub Pages
+   Then paste the address in the Publish tab and press "Share on WhatsApp".
+   Publish again whenever you change your products, and upload the new page.
+5. Plans: Weekly GHS 30, Monthly GHS 100, 3 Months GHS 230, 5 Months GHS 400.
+
+
+PAYMENTS WITH FLUTTERWAVE
+-------------------------
+1. Log in to your Flutterwave dashboard > Settings > API keys.
+2. Copy the SECRET key. Start with the TEST secret key (FLWSECK_TEST-...),
+   so no real money moves while you try it.
+3. In Lite Marketplace, log in with the admin account, open Admin > Settings,
+   paste the key and press "Save settings".
+4. A seller presses Subscribe: Flutterwave's payment page opens in the
+   browser (Mobile Money or card). After paying, the seller presses
+   "I have paid: check my payment". Lite Marketplace asks Flutterwave whether
+   the payment went through (and that it is the right amount, in GHS), then
+   switches the plan on until its end date. A plan that runs out goes back to
+   Free when the seller logs in.
+5. When everything works with the TEST key, put in your LIVE secret key.
+
+Keep the secret key private: it is saved in settings.json on this computer
+only. Don't share that file or put it on the web. (Your published shop page
+never contains it, or anyone's password or email.)
+
+Admins can also give a seller a plan by hand (for cash or Mobile Money paid
+directly): Admin > click the seller > pick the plan > "Give this plan".
+
+
+NEW PLAIN WORDS THIS APP USES
+-----------------------------
+save db to file "marketplace.json"         keeps lists and records as data
+set db to data from file "marketplace.json"
+add user to users of db                     a list inside a record
+add a gallery called shop with button "Add to cart" and currency "GHS"
+choose a picture and save it in photo
+copy file photo to "photos/" + id of editing and save it in saved
+open "https://wa.me/233241234567?text=" + url encoded message
+export "Shop.ui" as a web page "web shops/my-shop/index.html" with "shop.json"
+hash of (salt + password)      a unique id      price * qty as money
+the date in 30 days      days until expiry      expiry as a date
+show dashtab / hide admintab   (opens or hides a tab)

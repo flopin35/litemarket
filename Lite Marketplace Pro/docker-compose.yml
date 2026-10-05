@@ -1,0 +1,57 @@
+# Lite Marketplace: the whole platform with one command.
+#   1. copy .env.example to .env and fill it in
+#   2. docker compose up --build
+#   3. open http://localhost:8080
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: litemarket
+      POSTGRES_USER: ${DB_USER:-litemarket}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-litemarket}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-litemarket} -d litemarket"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  ai:
+    build: ./ai-service
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      AI_INTERNAL_KEY: ${AI_INTERNAL_KEY:-change-me-internal-key}
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/litemarket
+      DB_USER: ${DB_USER:-litemarket}
+      DB_PASSWORD: ${DB_PASSWORD:-litemarket}
+      AI_SERVICE_URL: http://ai:8000
+      AI_INTERNAL_KEY: ${AI_INTERNAL_KEY:-change-me-internal-key}
+      UPLOAD_DIR: /app/data/uploads
+    volumes:
+      - uploads:/app/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      ai:
+        condition: service_started
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  uploads:

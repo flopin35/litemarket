@@ -1,0 +1,123 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Lite Marketplace API configuration.
+# Every value can be overridden with an environment variable (see .env.example).
+# ──────────────────────────────────────────────────────────────────────────────
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework   # trust X-Forwarded-* from your reverse proxy
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: litemarket-api
+  datasource:
+    # Local default: an H2 file database in ./data (no install needed).
+    # Production: DB_URL=jdbc:postgresql://host:5432/litemarket
+    url: ${DB_URL:jdbc:h2:file:./data/litemarket;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: ${DB_SCHEMA_MODE:update}
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  mail:
+    # Leave MAIL_HOST empty to disable email (links are printed in the log instead).
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+app:
+  brand:
+    name: ${BRAND_NAME:Lite Marketplace}
+    support-email: ${SUPPORT_EMAIL:support@example.com}
+    default-country-code: ${DEFAULT_COUNTRY_CODE:233}
+
+  web:
+    # Public address of the website. Used for payment redirects, shop links and emails.
+    base-url: ${WEB_BASE_URL:http://localhost:5173}
+    cors-origins: ${CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+
+  security:
+    # CHANGE THIS in production: at least 32 random characters (openssl rand -base64 48).
+    jwt-secret: ${JWT_SECRET:change-me-dev-only-secret-0123456789-abcdefghijklmnop}
+    access-token-minutes: ${ACCESS_TOKEN_MINUTES:15}
+    refresh-token-days: ${REFRESH_TOKEN_DAYS:30}
+    secure-cookies: ${SECURE_COOKIES:false}   # true when served over HTTPS
+
+  plans:
+    currency: ${PLAN_CURRENCY:GHS}
+    free-product-limit: ${FREE_PRODUCT_LIMIT:5}
+    free-ai-credits: ${FREE_AI_CREDITS:50}
+    paid-ai-credits: ${PAID_AI_CREDITS:2000}
+    paid:
+      - code: WEEKLY
+        name: Weekly
+        price: 30
+        days: 7
+        popular: false
+      - code: MONTHLY
+        name: Monthly
+        price: 100
+        days: 30
+        popular: true
+      - code: QUARTER
+        name: 3 Months
+        price: 230
+        days: 91
+        popular: false
+      - code: FIVE_MONTHS
+        name: 5 Months
+        price: 400
+        days: 152
+        popular: false
+
+  payments:
+    # Demo mode adds a "Demo" gateway that simulates payments (no money moves).
+    # Turn it OFF in production.
+    demo-mode: ${PAYMENTS_DEMO_MODE:true}
+    # Platform commission on customer orders, in percent (0 = sellers keep everything).
+    commission-percent: ${COMMISSION_PERCENT:0}
+    flutterwave:
+      secret-key: ${FLUTTERWAVE_SECRET_KEY:}
+      webhook-hash: ${FLUTTERWAVE_WEBHOOK_HASH:}
+      base-url: ${FLUTTERWAVE_BASE_URL:https://api.flutterwave.com/v3}
+    paystack:
+      secret-key: ${PAYSTACK_SECRET_KEY:}
+      base-url: ${PAYSTACK_BASE_URL:https://api.paystack.co}
+    stripe:
+      secret-key: ${STRIPE_SECRET_KEY:}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+      base-url: ${STRIPE_BASE_URL:https://api.stripe.com/v1}
+
+  ai:
+    base-url: ${AI_SERVICE_URL:http://localhost:8000}
+    internal-key: ${AI_INTERNAL_KEY:dev-internal-key}
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:45}
+
+  storage:
+    upload-dir: ${UPLOAD_DIR:./data/uploads}
+
+  demo:
+    # Creates an admin and a demo shop the first time the app starts on an empty database.
+    seed: ${DEMO_SEED:true}
+    admin-email: ${ADMIN_EMAIL:admin@litemarket.dev}
+    admin-password: ${ADMIN_PASSWORD:admin12345}
+
+  mail:
+    from: ${MAIL_FROM:Lite Marketplace <no-reply@example.com>}
+
+logging:
+  level:
+    com.litemarket: INFO

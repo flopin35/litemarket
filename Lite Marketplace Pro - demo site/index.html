@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0A855E" />
+    <meta name="description" content="Create your online store in minutes. Sell on WhatsApp, get paid with Mobile Money and card, and let AI write your listings." />
+    <meta property="og:title" content="Lite Marketplace: your shop, on WhatsApp, in minutes" />
+    <meta property="og:description" content="Online shop + WhatsApp orders + Mobile Money & card payments + an AI sales assistant." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>Lite Marketplace</title>
+    <script>
+      // Apply the saved theme before the first paint (no flash).
+      try {
+        var t = localStorage.getItem("lm-theme");
+        if (t === "dark" || (!t && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <link rel="stylesheet" href="/assets/index.css" /><script type="module" src="/assets/main.js"></script>
+  </body>
+</html>
